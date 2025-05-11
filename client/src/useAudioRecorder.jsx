@@ -79,13 +79,34 @@ const useAudioRecorder = ({ dataCb }) => {
   };
 
   const stopRecording = () => {
-    scriptProcessor.current?.disconnect();
-    sourceNode.current?.disconnect();
-    mediaRecorder?.stop();
-    _stopTimer();
-    setRecordingTime(0);
-    setIsRecording(false);
-    setIsPaused(false);
+    try {
+      // Disconnect audio processing nodes
+      if (scriptProcessor.current) {
+        scriptProcessor.current.disconnect();
+        scriptProcessor.current = null;
+      }
+
+      if (sourceNode.current) {
+        sourceNode.current.disconnect();
+        sourceNode.current = null;
+      }
+
+      // Stop the MediaRecorder if it exists and is recording
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+      }
+
+      // Reset all state variables
+      _stopTimer();
+      setRecordingTime(0);
+      setMediaRecorder(null);
+      setIsRecording(false);
+      setIsPaused(false);
+
+      console.log("Recording stopped successfully");
+    } catch (error) {
+      console.error("Error stopping recording:", error);
+    }
   };
 
   const togglePauseResume = useCallback(() => {
@@ -105,6 +126,7 @@ const useAudioRecorder = ({ dataCb }) => {
     stopRecording,
     togglePauseResume,
     isRecording,
+    recordingTime,
   };
 };
 
